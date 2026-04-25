@@ -110,9 +110,7 @@ def build_preset(key: str) -> ParkingScene:
         case "parallel":
             return _parallel_slot(key, "Parallel", slot_length=6.8, start_x=-5.0)
         case "back-in-parallel":
-            scene = _parallel_slot(key, "Back-in parallel", slot_length=6.8, start_x=6.0)
-            scene.start = CarState(x=6.0, y=-2.0, theta=pi, v=0.0, delta=0.0)
-            return scene
+            return _parallel_slot(key, "Back-in parallel", slot_length=8.0, start_x=8.0)
         case "easy-tight-squeeze":
             return _parallel_slot(key, "Easy tight squeeze", slot_length=7.5, start_x=-5.0)
         case "tight-squeeze":

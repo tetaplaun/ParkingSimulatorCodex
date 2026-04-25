@@ -161,6 +161,9 @@ def _goal_seeking_actions(scene: ParkingScene) -> list[Action]:
 
 
 def _candidate_actions(session: TrainingSession, attempt_number: int) -> list[Action]:
+    if attempt_number == 1 and has_scripted_replay(session.preset_key):
+        return session.base_actions
+
     if attempt_number >= session.max_attempts - 1:
         return session.base_actions
 

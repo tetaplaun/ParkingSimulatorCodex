@@ -7,12 +7,13 @@ interface ToolbarProps {
   isPlaying: boolean;
   isTraining: boolean;
   showLidar: boolean;
-  trainingMaxAttempts: number;
+  trainingMaxAttempts: string;
   onPresetChange: (preset: PresetKey) => void;
   onPlayPause: () => void;
   onReset: () => void;
   onTrainToggle: () => void;
-  onTrainingMaxAttemptsChange: (maxAttempts: number) => void;
+  onTrainingMaxAttemptsChange: (maxAttempts: string) => void;
+  onTrainingMaxAttemptsBlur: () => void;
   onShowLidarChange: (show: boolean) => void;
 }
 
@@ -29,6 +30,7 @@ export function Toolbar({
   onReset,
   onTrainToggle,
   onTrainingMaxAttemptsChange,
+  onTrainingMaxAttemptsBlur,
   onShowLidarChange
 }: ToolbarProps) {
   return (
@@ -49,11 +51,12 @@ export function Toolbar({
         <input
           type="number"
           min={4}
-          max={200}
+          max={2000}
           step={1}
           value={trainingMaxAttempts}
           disabled={isTraining}
-          onChange={(event) => onTrainingMaxAttemptsChange(Number(event.target.value))}
+          onBlur={onTrainingMaxAttemptsBlur}
+          onChange={(event) => onTrainingMaxAttemptsChange(event.target.value)}
         />
       </label>
 

@@ -35,7 +35,7 @@ class ReplayWithSource(BaseModel):
 
 
 class TrainingStartRequest(BaseModel):
-    max_attempts: int = Field(default=72, ge=4, le=200)
+    max_attempts: int = Field(default=72, ge=4, le=2000)
 
 
 @app.get("/health")

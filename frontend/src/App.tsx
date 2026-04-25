@@ -9,12 +9,18 @@ import { buildDemoActions, replayLocal } from "./lib/replay";
 import type { ReplaySource } from "./lib/api";
 import type { PresetKey, ReplayResult, TrainingStatus } from "./lib/schemas";
 
+const MIN_TRAINING_ATTEMPTS = 4;
+const MAX_TRAINING_ATTEMPTS = 2000;
+const DEFAULT_TRAINING_ATTEMPTS = 72;
+
 export default function App() {
   const [presetKey, setPresetKey] = useState<PresetKey>("scene_easy");
   const [stepIndex, setStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLidar, setShowLidar] = useState(false);
-  const [trainingMaxAttempts, setTrainingMaxAttempts] = useState(72);
+  const [trainingMaxAttempts, setTrainingMaxAttempts] = useState(
+    String(DEFAULT_TRAINING_ATTEMPTS)
+  );
   const [policyReplay, setPolicyReplay] = useState<ReplayResult | null>(null);
   const [trainingStatus, setTrainingStatus] = useState<TrainingStatus | null>(null);
   const [trainingRunId, setTrainingRunId] = useState<string | null>(null);
@@ -131,8 +137,21 @@ export default function App() {
     setStepIndex(nextStep);
   }
 
-  function handleTrainingMaxAttemptsChange(nextMaxAttempts: number) {
-    setTrainingMaxAttempts(Math.min(Math.max(Math.trunc(nextMaxAttempts) || 4, 4), 200));
+  function normalizedTrainingMaxAttempts() {
+    const parsed = Number.parseInt(trainingMaxAttempts, 10);
+    if (!Number.isFinite(parsed)) return DEFAULT_TRAINING_ATTEMPTS;
+    return Math.min(
+      Math.max(parsed, MIN_TRAINING_ATTEMPTS),
+      MAX_TRAINING_ATTEMPTS
+    );
+  }
+
+  function handleTrainingMaxAttemptsChange(nextMaxAttempts: string) {
+    setTrainingMaxAttempts(nextMaxAttempts);
+  }
+
+  function handleTrainingMaxAttemptsBlur() {
+    setTrainingMaxAttempts(String(normalizedTrainingMaxAttempts()));
   }
 
   async function handleTrainToggle() {
@@ -145,7 +164,9 @@ export default function App() {
     }
 
     setStepIndex(0);
-    const status = await startTraining(presetKey, trainingMaxAttempts);
+    const maxAttempts = normalizedTrainingMaxAttempts();
+    setTrainingMaxAttempts(String(maxAttempts));
+    const status = await startTraining(presetKey, maxAttempts);
     setTrainingStatus(status);
     setTrainingRunId(status.run_id);
   }
@@ -170,6 +191,7 @@ export default function App() {
           onReset={handleReset}
           onTrainToggle={() => void handleTrainToggle()}
           onTrainingMaxAttemptsChange={handleTrainingMaxAttemptsChange}
+          onTrainingMaxAttemptsBlur={handleTrainingMaxAttemptsBlur}
           onShowLidarChange={setShowLidar}
         />
         <ReplayPanel

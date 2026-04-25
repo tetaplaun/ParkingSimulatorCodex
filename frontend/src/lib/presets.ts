@@ -131,10 +131,8 @@ export function buildPreset(key: PresetKey): ParkingScene {
       return parallelSlot(key, "Easy parallel", 9, -4);
     case "parallel":
       return parallelSlot(key, "Parallel", 6.8, -5);
-    case "back-in-parallel": {
-      const base = parallelSlot(key, "Back-in parallel", 6.8, 6);
-      return { ...base, start: { x: 6, y: -2, theta: Math.PI, v: 0, delta: 0 } };
-    }
+    case "back-in-parallel":
+      return parallelSlot(key, "Back-in parallel", 8, 8);
     case "easy-tight-squeeze":
       return parallelSlot(key, "Easy tight squeeze", 7.5, -5);
     case "tight-squeeze":
@@ -149,4 +147,3 @@ export function buildPreset(key: PresetKey): ParkingScene {
       return reverseGarage(key, "Reverse garage", false);
   }
 }
-

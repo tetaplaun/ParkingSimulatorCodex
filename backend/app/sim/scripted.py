@@ -9,7 +9,7 @@ from app.sim.scene import goal_metrics, has_collision, is_out_of_bounds, is_succ
 
 
 def has_scripted_replay(preset_key: str) -> bool:
-    return preset_key in {"easy-parallel", "easy-tight-squeeze"}
+    return preset_key in {"easy-parallel", "back-in-parallel", "easy-tight-squeeze"}
 
 
 def scripted_replay(
