@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.py[cod]
+
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+.env
+.env.*
+
+backend/runs/
+backend/policies/*_ppo_seed*.zip

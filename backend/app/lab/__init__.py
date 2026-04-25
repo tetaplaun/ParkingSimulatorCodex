@@ -1,0 +1,2 @@
+"""Training lab command modules."""
+
