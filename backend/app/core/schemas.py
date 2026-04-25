@@ -136,8 +136,27 @@ class ReplayResult(BaseModel):
     terminated: bool
 
 
+class TrainingAttempt(BaseModel):
+    index: int
+    score: float
+    best: bool
+    replay: ReplayResult
+
+
+class TrainingStatus(BaseModel):
+    run_id: str
+    preset_key: str
+    running: bool
+    completed: bool
+    attempts: int
+    max_attempts: int
+    successes: int
+    best_score: float | None = None
+    best_replay: ReplayResult | None = None
+    recent_attempts: list[TrainingAttempt] = Field(default_factory=list)
+
+
 class ReplayRequest(BaseModel):
     scene: ParkingScene
     actions: list[Action]
     include_lidar: bool = False
-

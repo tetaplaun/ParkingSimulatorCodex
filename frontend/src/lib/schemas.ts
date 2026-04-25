@@ -109,3 +109,22 @@ export interface ReplayResult {
   terminated: boolean;
 }
 
+export interface TrainingAttempt {
+  index: number;
+  score: number;
+  best: boolean;
+  replay: ReplayResult;
+}
+
+export interface TrainingStatus {
+  run_id: string;
+  preset_key: string;
+  running: boolean;
+  completed: boolean;
+  attempts: number;
+  max_attempts: number;
+  successes: number;
+  best_score: number | null;
+  best_replay: ReplayResult | null;
+  recent_attempts: TrainingAttempt[];
+}

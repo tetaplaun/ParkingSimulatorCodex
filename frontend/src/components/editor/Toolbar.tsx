@@ -5,10 +5,12 @@ interface ToolbarProps {
   presets: PresetKey[];
   canPlay: boolean;
   isPlaying: boolean;
+  isTraining: boolean;
   showLidar: boolean;
   onPresetChange: (preset: PresetKey) => void;
   onPlayPause: () => void;
   onReset: () => void;
+  onTrainToggle: () => void;
   onShowLidarChange: (show: boolean) => void;
 }
 
@@ -17,10 +19,12 @@ export function Toolbar({
   presets,
   canPlay,
   isPlaying,
+  isTraining,
   showLidar,
   onPresetChange,
   onPlayPause,
   onReset,
+  onTrainToggle,
   onShowLidarChange
 }: ToolbarProps) {
   return (
@@ -48,6 +52,14 @@ export function Toolbar({
           title={isPlaying ? "Pause replay" : "Play replay"}
         >
           {isPlaying ? "Pause" : "Play"}
+        </button>
+        <button
+          type="button"
+          onClick={onTrainToggle}
+          aria-pressed={isTraining}
+          title={isTraining ? "Stop live training" : "Live train this scene"}
+        >
+          {isTraining ? "Stop" : "Train"}
         </button>
       </div>
 

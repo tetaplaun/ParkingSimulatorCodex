@@ -5,12 +5,13 @@ from typing import Literal
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from stable_baselines3.common.base_class import BaseAlgorithm
 
-from app.core.schemas import Action, ReplayRequest, ReplayResult, SimStep
+from app.core.schemas import Action, ReplayRequest, ReplayResult, SimStep, TrainingStatus
 from app.lab.evaluate import load_model
 from app.rl.presets import PRESET_KEYS, build_preset
+from app.sim.live_training import get_training_status, start_training, stop_training
 from app.sim.replay import replay
 from app.sim.scene import goal_metrics
 from app.sim.scripted import has_scripted_replay, scripted_replay
@@ -31,6 +32,10 @@ POLICY_DIR = Path("policies")
 class ReplayWithSource(BaseModel):
     source: Literal["trained_policy", "scripted_teacher"]
     replay: ReplayResult
+
+
+class TrainingStartRequest(BaseModel):
+    max_attempts: int = Field(default=72, ge=4, le=200)
 
 
 @app.get("/health")
@@ -61,6 +66,33 @@ def get_preset(preset_key: str) -> dict[str, object]:
 @app.post("/replay")
 def replay_scene(request: ReplayRequest) -> ReplayResult:
     return replay(request.scene, request.actions, include_lidar=request.include_lidar)
+
+
+@app.post("/training/{preset_key}/start")
+def start_training_scene(
+    preset_key: str,
+    request: TrainingStartRequest | None = None,
+) -> TrainingStatus:
+    if preset_key not in PRESET_KEYS:
+        raise HTTPException(status_code=404, detail=f"Unknown preset: {preset_key}")
+    max_attempts = request.max_attempts if request is not None else 72
+    return start_training(preset_key, max_attempts=max_attempts)
+
+
+@app.get("/training/{run_id}")
+def training_status(run_id: str, advance_by: int = 3) -> TrainingStatus:
+    status = get_training_status(run_id, advance_by=max(0, min(10, advance_by)))
+    if status is None:
+        raise HTTPException(status_code=404, detail=f"Unknown training run: {run_id}")
+    return status
+
+
+@app.post("/training/{run_id}/stop")
+def stop_training_scene(run_id: str) -> TrainingStatus:
+    status = stop_training(run_id)
+    if status is None:
+        raise HTTPException(status_code=404, detail=f"Unknown training run: {run_id}")
+    return status
 
 
 @lru_cache(maxsize=16)

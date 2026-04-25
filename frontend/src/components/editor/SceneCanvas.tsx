@@ -1,12 +1,19 @@
 import { useEffect, useRef } from "react";
 
-import type { CarState, ParkingScene, RectObstacle, ReplayResult } from "../../lib/schemas";
+import type {
+  CarState,
+  ParkingScene,
+  RectObstacle,
+  ReplayResult,
+  TrainingAttempt
+} from "../../lib/schemas";
 
 interface SceneCanvasProps {
   scene: ParkingScene;
   replay: ReplayResult;
   stepIndex: number;
   showLidar: boolean;
+  trainingAttempts: TrainingAttempt[];
 }
 
 interface Viewport {
@@ -156,6 +163,40 @@ function drawTrajectory(
   ctx.stroke();
 }
 
+function drawTrainingTrails(
+  ctx: CanvasRenderingContext2D,
+  scene: ParkingScene,
+  viewport: Viewport,
+  attempts: TrainingAttempt[]
+) {
+  const visibleAttempts = attempts.slice(-18);
+  visibleAttempts.forEach((attempt, index) => {
+    const points = [scene.start, ...attempt.replay.steps.map((step) => step.state)];
+    if (points.length < 2) return;
+
+    const age = (index + 1) / visibleAttempts.length;
+    const alpha = 0.12 + age * 0.34;
+    const stroke = attempt.replay.success
+      ? `rgba(55, 125, 76, ${alpha})`
+      : attempt.best
+        ? `rgba(40, 123, 143, ${alpha + 0.18})`
+        : `rgba(183, 92, 69, ${alpha})`;
+
+    ctx.save();
+    ctx.beginPath();
+    points.forEach((point, pointIndex) => {
+      const [x, y] = toCanvas(scene, viewport, [point.x, point.y]);
+      if (pointIndex === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = attempt.best ? 2.5 : 1.5;
+    ctx.setLineDash(attempt.best ? [] : [5, 5]);
+    ctx.stroke();
+    ctx.restore();
+  });
+}
+
 function drawLidar(
   ctx: CanvasRenderingContext2D,
   scene: ParkingScene,
@@ -203,7 +244,13 @@ function drawGrid(ctx: CanvasRenderingContext2D, scene: ParkingScene, viewport: 
   }
 }
 
-export function SceneCanvas({ scene, replay, stepIndex, showLidar }: SceneCanvasProps) {
+export function SceneCanvas({
+  scene,
+  replay,
+  stepIndex,
+  showLidar,
+  trainingAttempts
+}: SceneCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -243,6 +290,7 @@ export function SceneCanvas({ scene, replay, stepIndex, showLidar }: SceneCanvas
       drawGrid(ctx, scene, viewport);
       drawGoal(ctx, scene, viewport);
       scene.obstacles.forEach((obstacle) => drawObstacle(ctx, scene, viewport, obstacle));
+      drawTrainingTrails(ctx, scene, viewport, trainingAttempts);
       drawTrajectory(ctx, scene, viewport, replay, stepIndex);
 
       const currentState = replay.steps[stepIndex]?.state ?? scene.start;
@@ -255,7 +303,7 @@ export function SceneCanvas({ scene, replay, stepIndex, showLidar }: SceneCanvas
     const observer = new ResizeObserver(render);
     observer.observe(canvasElement.parentElement ?? canvasElement);
     return () => observer.disconnect();
-  }, [scene, replay, stepIndex, showLidar]);
+  }, [scene, replay, stepIndex, showLidar, trainingAttempts]);
 
   return <canvas ref={canvasRef} className="scene-canvas" aria-label="Parking scene canvas" />;
 }

@@ -1,19 +1,27 @@
-import type { ParkingScene, ReplayResult } from "../../lib/schemas";
+import type { ParkingScene, ReplayResult, TrainingStatus } from "../../lib/schemas";
 
 interface ReplayPanelProps {
   scene: ParkingScene;
   replay: ReplayResult;
   replaySource: "loading" | "trained policy" | "scripted teacher" | "demo script";
   stepIndex: number;
+  trainingStatus: TrainingStatus | null;
 }
 
 function formatNumber(value: number, fractionDigits = 2): string {
   return value.toFixed(fractionDigits);
 }
 
-export function ReplayPanel({ scene, replay, replaySource, stepIndex }: ReplayPanelProps) {
+export function ReplayPanel({
+  scene,
+  replay,
+  replaySource,
+  stepIndex,
+  trainingStatus
+}: ReplayPanelProps) {
   const step = replay.steps[stepIndex];
   const metrics = step?.metrics;
+  const bestMetrics = trainingStatus?.best_replay?.steps.at(-1)?.metrics;
   const status = step?.success
     ? "success"
     : step?.out_of_bounds
@@ -40,6 +48,30 @@ export function ReplayPanel({ scene, replay, replaySource, stepIndex }: ReplayPa
         <span>Steps</span>
         <strong>{replay.steps.length}</strong>
       </div>
+      {trainingStatus ? (
+        <>
+          <div>
+            <span>Training</span>
+            <strong>{trainingStatus.running ? "running" : "complete"}</strong>
+          </div>
+          <div>
+            <span>Attempts</span>
+            <strong>
+              {trainingStatus.attempts}/{trainingStatus.max_attempts}
+            </strong>
+          </div>
+          <div>
+            <span>Successes</span>
+            <strong>{trainingStatus.successes}</strong>
+          </div>
+          {bestMetrics ? (
+            <div>
+              <span>Best Distance</span>
+              <strong>{formatNumber(bestMetrics.distance)} m</strong>
+            </div>
+          ) : null}
+        </>
+      ) : null}
       {metrics ? (
         <>
           <div>

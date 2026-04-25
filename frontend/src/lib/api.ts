@@ -1,4 +1,4 @@
-import type { Action, ParkingScene, PresetKey, ReplayResult } from "./schemas";
+import type { Action, ParkingScene, PresetKey, ReplayResult, TrainingStatus } from "./schemas";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8001";
 
@@ -60,4 +60,37 @@ export async function replayBest(preset: PresetKey): Promise<BestReplayResponse 
     source: data.source === "trained_policy" ? "trained policy" : "scripted teacher",
     replay: data.replay
   };
+}
+
+export async function startTraining(
+  preset: PresetKey,
+  maxAttempts = 72
+): Promise<TrainingStatus> {
+  const response = await fetch(`${API_BASE}/training/${preset}/start`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ max_attempts: maxAttempts })
+  });
+  if (!response.ok) {
+    throw new Error(`Training start failed: ${response.status}`);
+  }
+  return response.json() as Promise<TrainingStatus>;
+}
+
+export async function fetchTrainingStatus(runId: string): Promise<TrainingStatus> {
+  const response = await fetch(`${API_BASE}/training/${runId}?advance_by=3`);
+  if (!response.ok) {
+    throw new Error(`Training status failed: ${response.status}`);
+  }
+  return response.json() as Promise<TrainingStatus>;
+}
+
+export async function stopTraining(runId: string): Promise<TrainingStatus> {
+  const response = await fetch(`${API_BASE}/training/${runId}/stop`, {
+    method: "POST"
+  });
+  if (!response.ok) {
+    throw new Error(`Training stop failed: ${response.status}`);
+  }
+  return response.json() as Promise<TrainingStatus>;
 }
