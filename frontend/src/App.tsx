@@ -14,6 +14,7 @@ export default function App() {
   const [stepIndex, setStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLidar, setShowLidar] = useState(false);
+  const [trainingMaxAttempts, setTrainingMaxAttempts] = useState(72);
   const [policyReplay, setPolicyReplay] = useState<ReplayResult | null>(null);
   const [trainingStatus, setTrainingStatus] = useState<TrainingStatus | null>(null);
   const [trainingRunId, setTrainingRunId] = useState<string | null>(null);
@@ -130,6 +131,10 @@ export default function App() {
     setStepIndex(nextStep);
   }
 
+  function handleTrainingMaxAttemptsChange(nextMaxAttempts: number) {
+    setTrainingMaxAttempts(Math.min(Math.max(Math.trunc(nextMaxAttempts) || 4, 4), 200));
+  }
+
   async function handleTrainToggle() {
     setIsPlaying(false);
     if (trainingStatus?.running) {
@@ -140,7 +145,7 @@ export default function App() {
     }
 
     setStepIndex(0);
-    const status = await startTraining(presetKey);
+    const status = await startTraining(presetKey, trainingMaxAttempts);
     setTrainingStatus(status);
     setTrainingRunId(status.run_id);
   }
@@ -159,10 +164,12 @@ export default function App() {
           isPlaying={isPlaying}
           isTraining={isTraining}
           showLidar={showLidar}
+          trainingMaxAttempts={trainingMaxAttempts}
           onPresetChange={handlePresetChange}
           onPlayPause={handlePlayPause}
           onReset={handleReset}
           onTrainToggle={() => void handleTrainToggle()}
+          onTrainingMaxAttemptsChange={handleTrainingMaxAttemptsChange}
           onShowLidarChange={setShowLidar}
         />
         <ReplayPanel
